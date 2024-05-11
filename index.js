@@ -37,12 +37,29 @@ async function run() {
     //to use into vercel this code should not be used
     // await client.connect();
 
-    const usersCollection = client.db("usersDB").collection("users");
+    const foodCollection = client.db("tastify_foodsDB").collection("foods");
 
     /***********************************
      * <------- apis start form here ----->>
      ************************************
      */
+
+    // all foods getting api
+
+    app.get("/foods", async (req, res) => {
+      const cursor = foodCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    // creating a food api
+
+    app.post("/foods", async (req, res) => {
+      const food = req.body;
+      console.log("food", food);
+      const result = await foodCollection.insertOne(food);
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
