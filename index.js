@@ -52,6 +52,24 @@ async function run() {
       res.send(result);
     });
 
+    // get individual food by id
+
+    app.get("/foods/id/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const user = await foodCollection.findOne(query);
+      res.send(user);
+    });
+
+    // get foods by email
+
+    app.get("/foods/email/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { creator_email: email };
+      const result = await foodCollection.find(query).toArray();
+      res.send(result);
+    });
+
     // creating a food api
 
     app.post("/foods", async (req, res) => {
