@@ -38,6 +38,7 @@ async function run() {
     // await client.connect();
 
     const foodCollection = client.db("tastify_foodsDB").collection("foods");
+    const orderCollection = client.db("tastify_foodsDB").collection("orders");
 
     /***********************************
      * <------- apis start form here ----->>
@@ -54,7 +55,7 @@ async function run() {
 
     // get individual food by id
 
-    app.get("/foods/id/:id", async (req, res) => {
+    app.get("/food/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const user = await foodCollection.findOne(query);
@@ -63,7 +64,7 @@ async function run() {
 
     // get foods by email
 
-    app.get("/foods/email/:email", async (req, res) => {
+    app.get("/foods/:email", async (req, res) => {
       const email = req.params.email;
       const query = { creator_email: email };
       const result = await foodCollection.find(query).toArray();
@@ -77,6 +78,23 @@ async function run() {
       console.log("food", food);
       const result = await foodCollection.insertOne(food);
       res.send(result);
+    });
+
+    // creating orders api
+    app.post("/orders", async (req, res) => {
+      const order = req.body;
+      const { quantity, id } = req.body;
+
+      // Inserting the order into the orders collection
+      const insertResult = await orderCollection.insertOne(order);
+
+      // decreasing the quantity from the food collection if order complete
+      const updateResult = await foodCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $inc: { quantity: -quantity } }
+      );
+
+      res.send({ insertResult, updateResult });
     });
 
     // Send a ping to confirm a successful connection
