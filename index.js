@@ -100,6 +100,32 @@ async function run() {
       res.send({ foodDeleteResult, orderDeleteResult });
     });
 
+    // updating added food
+    app.put("/food/:id", async (req, res) => {
+      const id = req.params.id;
+      const { name, image, category, quantity, price, origin, description } =
+        req.body;
+      const filter = { _id: new ObjectId(id) };
+      const updatedUser = {
+        $set: {
+          name,
+          image,
+          category,
+          quantity,
+          price,
+          origin,
+          description,
+        },
+      };
+      const options = { upsert: true };
+      const result = await foodCollection.updateOne(
+        filter,
+        updatedUser,
+        options
+      );
+      res.send(result);
+    });
+
     // getting  orders by email
 
     app.get("/orders/:email", async (req, res) => {
