@@ -80,7 +80,16 @@ async function run() {
       res.send(result);
     });
 
-    // creating orders api
+    // getting  orders by email
+
+    app.get("/orders/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { buyerEmail: email };
+      const result = await orderCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    // creating orders api and
     app.post("/orders", async (req, res) => {
       const order = req.body;
       const { quantity, id } = req.body;
@@ -93,8 +102,26 @@ async function run() {
         { _id: new ObjectId(id) },
         { $inc: { quantity: -quantity } }
       );
-
       res.send({ insertResult, updateResult });
+    });
+
+    // deleting single order by id
+    app.delete("/orders/:id", async (req, res) => {
+      const orderedId = req.params.id;
+      const { quantity, foodId } = req.body;
+
+      const query = { _id: new ObjectId(orderedId) };
+
+      // deleting single order by id
+      const deleteResult = await orderCollection.deleteOne(query);
+
+      // updating the quantity in main food item
+      const updateResult = await foodCollection.updateOne(
+        { _id: new ObjectId(foodId) },
+        { $inc: { quantity: +quantity } }
+      );
+
+      res.send({ deleteResult, updateResult });
     });
 
     // Send a ping to confirm a successful connection
