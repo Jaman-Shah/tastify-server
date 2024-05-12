@@ -126,6 +126,38 @@ async function run() {
       res.send(result);
     });
 
+    // getting top sold foods
+
+    app.get("/topsoldfoods", async (req, res) => {
+      // getting the foods and orders from database
+      const foods = await foodCollection.find().toArray();
+      const orders = await orderCollection.find().toArray();
+
+      //removing duplication and sorting orders with descending order based on quantity
+      const uniqueOrders = orders
+        .reduce((acc, current) => {
+          const existing = acc.find((item) => item.id === current.id);
+          if (existing) {
+            existing.quantity += current.quantity;
+          } else {
+            acc.push(current);
+          }
+          return acc;
+        }, [])
+        .sort((a, b) => b.quantity - a.quantity);
+
+      // creating map for matching the foods and orders
+      const foodMap = new Map();
+      foods.forEach((food) => {
+        foodMap.set(food._id.toString(), food);
+      });
+
+      // keeping descending order based on order to foods
+      const result = uniqueOrders.map((item) => foodMap.get(item.id));
+      const topSix = result.slice(0, 6);
+      res.send(topSix);
+    });
+
     // getting  orders by email
 
     app.get("/orders/:email", async (req, res) => {
