@@ -79,6 +79,27 @@ async function run() {
       res.send(result);
     });
 
+    // delete single food by id
+
+    app.delete("/foods/:id", async (req, res) => {
+      const foodId = req.params.id;
+
+      const deleteOfFoodQuery = { _id: new ObjectId(foodId) };
+
+      // deleting a single food by id
+      const foodDeleteResult = await foodCollection.deleteOne(
+        deleteOfFoodQuery
+      );
+
+      // deleting orders related to the food by foodId
+      const deleteOfOrderQuery = { id: foodId };
+      const orderDeleteResult = await orderCollection.deleteMany(
+        deleteOfOrderQuery
+      );
+
+      res.send({ foodDeleteResult, orderDeleteResult });
+    });
+
     // getting  orders by email
 
     app.get("/orders/:email", async (req, res) => {
@@ -91,7 +112,8 @@ async function run() {
     // creating orders api and
     app.post("/orders", async (req, res) => {
       const order = req.body;
-      const { quantity, id } = req.body;
+      let { quantity, id } = req.body;
+      quantity = parseInt(quantity);
 
       // Inserting the order into the orders collection
       const insertResult = await orderCollection.insertOne(order);
@@ -107,7 +129,8 @@ async function run() {
     // deleting single order by id
     app.delete("/orders/:id", async (req, res) => {
       const orderedId = req.params.id;
-      const { quantity, foodId } = req.body;
+      let { quantity, foodId } = req.body;
+      quantity = parseInt(quantity);
 
       const query = { _id: new ObjectId(orderedId) };
 
