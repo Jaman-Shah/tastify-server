@@ -1,6 +1,7 @@
 const express = require("express");
 require("dotenv").config();
 const app = express();
+const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
 const port = process.env.PORT || 5005;
@@ -44,8 +45,20 @@ async function run() {
     const galleryCollection = client
       .db("tastify_foodsDB")
       .collection("gallery");
+
+    // auth related api starts here
+
+    app.post("/jwt", async (req, res) => {
+      const user = req.body;
+      console.log(user);
+      const token = jwt.sign(user, process.env.TOKEN_SECRET, {
+        expiresIn: "1h",
+      });
+      res.send(token);
+    });
+
     /***********************************
-     * <------- apis start form here ----->>
+     * <-------services apis start form here ----->>
      ************************************
      */
 
