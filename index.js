@@ -2,16 +2,18 @@ const express = require("express");
 require("dotenv").config();
 const app = express();
 const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
 const port = process.env.PORT || 5005;
 
 app.use(express.json());
+app.use(cookieParser());
 
 // cors configuration
 
 const corsConfig = {
-  origin: "*",
+  origin: ["http://localhost:5173"],
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
 };
@@ -31,6 +33,22 @@ const client = new MongoClient(uri, {
   },
 });
 
+// middleWares
+
+const verifyToken = async (req, res, next) => {
+  const token = req.cookies?.token;
+  if (!token) {
+    return res.send({ message: "Unauthorized" });
+  }
+  jwt.verify(token, process.env.TOKEN_SECRET, (error, decoded) => {
+    if (error) {
+      return res.send({ message: "Unauthorized" });
+    }
+    req.user = decoded;
+    next();
+  });
+};
+
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
@@ -46,7 +64,10 @@ async function run() {
       .db("tastify_foodsDB")
       .collection("gallery");
 
-    // auth related api starts here
+    /***********************************
+     * <------- auth apis start form here ----->>
+     ************************************
+     */
 
     app.post("/jwt", async (req, res) => {
       const user = req.body;
@@ -54,7 +75,13 @@ async function run() {
       const token = jwt.sign(user, process.env.TOKEN_SECRET, {
         expiresIn: "1h",
       });
-      res.send(token);
+      res
+        .cookie("token", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+        })
+        .send({ success: true });
     });
 
     /***********************************
@@ -81,7 +108,13 @@ async function run() {
 
     // get foods by email
 
-    app.get("/foods/:email", async (req, res) => {
+    app.get("/foods/:email", verifyToken, async (req, res) => {
+      if (req.params.email !== req.user.email) {
+        return res.send({ message: "forbidden" });
+      }
+      if (req.params.email !== req.user.email) {
+        return res.send({ message: "forbidden" });
+      }
       const email = req.params.email;
       const query = { creator_email: email };
       const result = await foodCollection.find(query).toArray();
@@ -149,7 +182,7 @@ async function run() {
       // getting the foods and orders from database
       const foods = await foodCollection.find().toArray();
       const orders = await orderCollection.find().toArray();
-
+      console.log("token is", req.cookies.token);
       //removing duplication and sorting orders with descending order based on quantity
       const uniqueOrders = orders
         .reduce((acc, current) => {
@@ -177,7 +210,10 @@ async function run() {
 
     // getting  orders by email
 
-    app.get("/orders/:email", async (req, res) => {
+    app.get("/orders/:email", verifyToken, async (req, res) => {
+      if (req.params.email !== req.user.email) {
+        return res.send({ message: "forbidden" });
+      }
       const email = req.params.email;
       const query = { buyerEmail: email };
       const result = await orderCollection.find(query).toArray();
