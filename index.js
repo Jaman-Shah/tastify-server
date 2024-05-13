@@ -38,8 +38,12 @@ async function run() {
     // await client.connect();
 
     const foodCollection = client.db("tastify_foodsDB").collection("foods");
+
     const orderCollection = client.db("tastify_foodsDB").collection("orders");
 
+    const galleryCollection = client
+      .db("tastify_foodsDB")
+      .collection("gallery");
     /***********************************
      * <------- apis start form here ----->>
      ************************************
@@ -202,6 +206,22 @@ async function run() {
       );
 
       res.send({ deleteResult, updateResult });
+    });
+
+    // gallery data getting api
+
+    app.get("/gallery", async (req, res) => {
+      const gallery = await galleryCollection.find().toArray();
+      const result = gallery.slice().reverse();
+      res.send(result);
+    });
+
+    // gallery data posting api
+
+    app.post("/gallery", async (req, res) => {
+      const gallery = req.body;
+      const result = await galleryCollection.insertOne(gallery);
+      res.send(result);
     });
 
     // Send a ping to confirm a successful connection
