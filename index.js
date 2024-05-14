@@ -63,17 +63,19 @@ async function run() {
     const galleryCollection = client
       .db("tastify_foodsDB")
       .collection("gallery");
+    const userCollection = client.db("tastify_foodsDB").collection("users");
 
     /***********************************
      * <------- auth apis start form here ----->>
      ************************************
      */
 
+    // creating jwt
     app.post("/jwt", async (req, res) => {
       const user = req.body;
-      console.log(user);
+      // console.log(user);
       const token = jwt.sign(user, process.env.TOKEN_SECRET, {
-        expiresIn: "1h",
+        expiresIn: "1d",
       });
       res
         .cookie("token", token, {
@@ -84,10 +86,44 @@ async function run() {
         .send({ success: true });
     });
 
+    // removing jwt
+
+    app.get("/logout", async (req, res) => {
+      res
+        .clearCookie("token", {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+          maxAge: 0,
+        })
+        .send({ success: "true" });
+    });
+
     /***********************************
      * <-------services apis start form here ----->>
      ************************************
      */
+
+    // all user posting api
+
+    // getting users api
+    app.get("/users", async (req, res) => {
+      const cursor = userCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    app.post("/users", async (req, res) => {
+      const { email } = req.body;
+      const user = req.body;
+      const query = { email: email };
+      const email_exist = await foodCollection.findOne(query);
+      if (email_exist) {
+        return res.send({ message: "Email in use" });
+      }
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
 
     // all foods getting api
 
@@ -112,9 +148,7 @@ async function run() {
       if (req.params.email !== req.user.email) {
         return res.send({ message: "forbidden" });
       }
-      if (req.params.email !== req.user.email) {
-        return res.send({ message: "forbidden" });
-      }
+
       const email = req.params.email;
       const query = { creator_email: email };
       const result = await foodCollection.find(query).toArray();
@@ -182,7 +216,7 @@ async function run() {
       // getting the foods and orders from database
       const foods = await foodCollection.find().toArray();
       const orders = await orderCollection.find().toArray();
-      console.log("token is", req.cookies.token);
+      // console.log("token is", req.cookies.token);
       //removing duplication and sorting orders with descending order based on quantity
       const uniqueOrders = orders
         .reduce((acc, current) => {
