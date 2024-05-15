@@ -13,7 +13,7 @@ app.use(cookieParser());
 // cors configuration
 
 const corsConfig = {
-  origin: ["http://localhost:5173"],
+  origin: ["http://localhost:5173", "https://tastify-da963.web.app"],
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
 };
@@ -133,7 +133,33 @@ async function run() {
       res.send(result);
     });
 
-    // get individual food by id
+    // food search api
+
+    // app.get("/foods/search/:name", async (req, res) => {
+    //   const name = req.params.name;
+    //   console.log(name);
+    //   const query = { name: name };
+    //   const foods = await foodCollection.find(query).toArray();
+    //   const result = foods.filter((food) =>
+    //     name.toLowerCase().includes(food.name.toLocaleLowerCase())
+    //   );
+    //   res.send(result);
+    // });
+    app.get("/foods/search", async (req, res) => {
+      const name = req.query.name;
+      if (!name) {
+        const foods = await foodCollection.find().toArray();
+        return res.send(foods);
+      }
+      const filteredFoods = await foodCollection
+        .find({
+          name: { $regex: name, $options: "i" },
+        })
+        .toArray();
+      res.send(filteredFoods);
+    });
+
+    // getting individual food by id
 
     app.get("/food/:id", async (req, res) => {
       const id = req.params.id;
