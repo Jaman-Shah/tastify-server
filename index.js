@@ -1,5 +1,5 @@
-const express = require("express");
 require("dotenv").config();
+const express = require("express");
 const app = express();
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
@@ -12,12 +12,20 @@ app.use(cookieParser());
 
 // cors configuration
 
-const corsConfig = {
-  origin: ["http://localhost:5173", "https://tastify-da963.web.app"],
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-};
-app.use(cors(corsConfig));
+// const corsConfig = {
+//   origin: ["http://localhost:5173", "https://tastify-da963.web.app"],
+//   credentials: true,
+//   methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+// };
+
+// app.use(cors(corsConfig));
+
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "https://tastify-da963.web.app"],
+    credentials: true,
+  })
+);
 
 //
 //
@@ -91,10 +99,9 @@ async function run() {
     app.get("/logout", async (req, res) => {
       res
         .clearCookie("token", {
-          httpOnly: true,
+          maxAge: 0,
           secure: process.env.NODE_ENV === "production",
           sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-          maxAge: 0,
         })
         .send({ success: "true" });
     });
@@ -170,10 +177,10 @@ async function run() {
 
     // get foods by email
 
-    app.get("/foods/:email", verifyToken, async (req, res) => {
-      if (req.params.email !== req.user.email) {
-        return res.send({ message: "forbidden" });
-      }
+    app.get("/foods/:email", async (req, res) => {
+      // if (req.params.email !== req.user.email) {
+      //   return res.send({ message: "forbidden" });
+      // }
 
       const email = req.params.email;
       const query = { creator_email: email };
@@ -270,10 +277,10 @@ async function run() {
 
     // getting  orders by email
 
-    app.get("/orders/:email", verifyToken, async (req, res) => {
-      if (req.params.email !== req.user.email) {
-        return res.send({ message: "forbidden" });
-      }
+    app.get("/orders/:email", async (req, res) => {
+      // if (req.params.email !== req.user.email) {
+      //   return res.send({ message: "forbidden" });
+      // }
       const email = req.params.email;
       const query = { buyerEmail: email };
       const result = await orderCollection.find(query).toArray();
