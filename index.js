@@ -135,23 +135,25 @@ async function run() {
     // all foods getting api
 
     app.get("/foods", async (req, res) => {
-      const cursor = foodCollection.find();
+      const { page, size } = req.query;
+      const parseToInt = (num) => parseInt(num);
+      const cursor = foodCollection
+        .find()
+        .skip(parseToInt(page - 1) * parseToInt(size))
+        .limit(parseToInt(size));
       const result = await cursor.toArray();
       res.send(result);
     });
 
+    // number of foods counter for pagination
+
+    app.get("/foods/counter", async (req, res) => {
+      const counter = await foodCollection.estimatedDocumentCount();
+      res.send({ counter });
+    });
+
     // food search api
 
-    // app.get("/foods/search/:name", async (req, res) => {
-    //   const name = req.params.name;
-    //   console.log(name);
-    //   const query = { name: name };
-    //   const foods = await foodCollection.find(query).toArray();
-    //   const result = foods.filter((food) =>
-    //     name.toLowerCase().includes(food.name.toLocaleLowerCase())
-    //   );
-    //   res.send(result);
-    // });
     app.get("/foods/search", async (req, res) => {
       const name = req.query.name;
       if (!name) {

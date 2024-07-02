@@ -1,16 +1,38 @@
 # Tastify
 
-LIVE LINK:
+## Live Link
 
 https://tastify-da963.web.app
 
-CATEGORY:
-assignment_category_0005
+## Project Overview
 
-FEATURES OF THE WEBSITE:
+Tastify Website is a food selling website. Here people can buy tasty foods and order foods.
 
-- 1. Every user can create food
-- 2. Every user can purchase food none but the user who created the food
-- 3. JWT is implemented for securing all user private data
-- 4. Every user can add image and feedback to the gallery section
-- 5. People can buy fresh foods from us
+## Features
+
+- **Order Foods**: A user can order food.
+- **Add A food**: A user can add a food item
+- **Search Functionality**: There is a search functionality in the all food section
+
+## Technologies Used
+
+- **Frontend**: React
+- **Backend**: Node.js, Express
+- **Database**: MongoDB
+- **Styling**: TailwindCSS
+
+## Getting Started
+
+To get a local copy up and running, follow these steps:
+
+### Prerequisites
+
+- Node.js installed
+- MongoDB installed and running locally or a remote MongoDB URI
+
+### Installation
+
+- Step-1: git clone https://github.com/Jaman-Shah/tastify-server.git
+- Step-2: cd bd-tour-client
+- Step-3: npm install
+- Step-4: npm start
